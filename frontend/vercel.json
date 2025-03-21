@@ -1,12 +1,10 @@
 {
-  "buildCommand": "npm run vercel-build",
-  "installCommand": "npm run vercel-install",
   "framework": "create-react-app",
+  "buildCommand": "CI=false DISABLE_ESLINT_PLUGIN=true npm run build",
+  "devCommand": "npm run start",
   "outputDirectory": "build",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "env": {
+    "CI": "false",
+    "DISABLE_ESLINT_PLUGIN": "true"
+  }
 }

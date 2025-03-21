@@ -21,7 +21,7 @@ function ResumeUpload() {
 
     setUploading(true);
     try {
-      const response = await axios.post('/api/resumes/upload', formData, {
+      const response = await api.post('/resumes/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`

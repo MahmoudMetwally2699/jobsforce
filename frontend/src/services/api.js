@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'https://jobsforces.vercel.app/api',
-  withCredentials: true,
+  withCredentials: false, // Change to false since we're using JWT
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -12,6 +12,11 @@ const api = axios.create({
 
 api.interceptors.request.use(
   config => {
+    // Don't set Content-Type for FormData
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

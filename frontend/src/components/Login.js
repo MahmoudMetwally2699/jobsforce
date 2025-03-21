@@ -13,11 +13,11 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post('/auth/login', { email, password });
       login(response.data.token);
       navigate('/');
     } catch (error) {
-      setError('Invalid credentials');
+      setError(error.response?.data?.error || 'Invalid credentials');
     }
   };
 

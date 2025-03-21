@@ -17,7 +17,7 @@ app.use(helmet({
 }));
 
 const allowedOrigins = [
-  'https://frontend-6ws7vuamy-mahmoudmetwally2699s-projects.vercel.app',
+  'https://jobsforcesfront.vercel.app',
   'http://localhost:3000'
 ];
 

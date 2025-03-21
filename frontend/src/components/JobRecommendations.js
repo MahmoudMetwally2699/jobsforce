@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 
 function JobRecommendations() {
   const [jobs, setJobs] = useState([]);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
   const { token } = useAuth();
 
   const fetchJobs = async () => {
     setLoading(true);
+    setError('');
     try {
-      const response = await axios.get(`/api/jobs/recommendations?page=${page}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setJobs(response.data.jobs);
+      const response = await api.get(`/jobs/recommendations?page=${page}`);
+      setJobs(response.data.jobs || []);
     } catch (error) {
       console.error('Error fetching jobs:', error);
+      setError('Failed to load job recommendations');
+      setJobs([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -28,8 +31,17 @@ function JobRecommendations() {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Recommended Jobs</h2>
+
+      {error && (
+        <div className="text-red-500 mb-4">{error}</div>
+      )}
+
       {loading ? (
-        <div>Loading...</div>
+        <div className="text-center py-4">Loading...</div>
+      ) : jobs.length === 0 ? (
+        <div className="text-center py-4 text-gray-600">
+          No job recommendations found. Try uploading your resume first.
+        </div>
       ) : (
         <div className="grid gap-4">
           {jobs.map(job => (

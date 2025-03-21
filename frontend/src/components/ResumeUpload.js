@@ -6,10 +6,14 @@ function ResumeUpload() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [skills, setSkills] = useState([]);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const { token } = useAuth();
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    setError('');
+    setSuccess('');
   };
 
   const handleUpload = async (e) => {
@@ -20,23 +24,44 @@ function ResumeUpload() {
     formData.append('resume', file);
 
     setUploading(true);
+    setError('');
+    setSuccess('');
+
     try {
       const response = await api.post('/resumes/upload', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`
         }
       });
       setSkills(response.data.skills);
+      setSuccess('Resume uploaded successfully!');
+      setFile(null);
+      // Reset file input
+      e.target.reset();
     } catch (error) {
       console.error('Upload failed:', error);
+      setError(error.message || 'Failed to upload resume');
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Upload Resume</h2>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+          {success}
+        </div>
+      )}
+
       <form onSubmit={handleUpload} className="max-w-md">
         <input
           type="file"

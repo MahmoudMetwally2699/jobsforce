@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const errorHandler = require('./middleware/errorHandler');
-const authRoutes = require('./routes/auth');
+const authRouter = require('./routes/auth');
 const jobRoutes = require('./routes/jobs');
 const resumeRoutes = require('./routes/resumes');
 
@@ -17,8 +17,10 @@ app.use(helmet({
 }));
 
 const allowedOrigins = [
+ 'http://localhost:3001',
   'https://jobsforcesfront.vercel.app',
-  'http://localhost:3000'
+  'http://localhost:3000',
+
 ];
 
 app.use(cors({
@@ -57,7 +59,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('MongoDB connection error:', err);
 });
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRouter);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/resumes', resumeRoutes);
 

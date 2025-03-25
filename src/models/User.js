@@ -11,6 +11,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  role: {
+    type: String,
+    enum: ['user', 'recruiter'],
+    default: 'user'
+  },
+  companyName: {
+    type: String,
+    required: function() { return this.role === 'recruiter'; }
+  },
   skills: [{
     type: String
   }],

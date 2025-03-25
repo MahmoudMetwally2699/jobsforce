@@ -5,6 +5,8 @@ import Dashboard from './components/Dashboard';
 import ResumeUpload from './components/ResumeUpload';
 import JobRecommendations from './components/JobRecommendations';
 import Signup from './components/Signup';
+import RoleSelect from './components/RoleSelect';
+import PostJob from './components/PostJob';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const PrivateRoute = ({ children }) => {
@@ -17,6 +19,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<RoleSelect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/" element={
@@ -26,6 +29,7 @@ function App() {
           }>
             <Route path="upload" element={<ResumeUpload />} />
             <Route path="recommendations" element={<JobRecommendations />} />
+            <Route path="post-job" element={<PostJob />} />
           </Route>
         </Routes>
       </BrowserRouter>

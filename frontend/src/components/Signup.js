@@ -97,7 +97,10 @@ function Signup() {
           </button>
           <p className="mt-4 text-center text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-500 hover:text-blue-700">
+            <Link
+              to={`/login?role=${role}`}
+              className="text-blue-500 hover:text-blue-700"
+            >
               Login
             </Link>
           </p>

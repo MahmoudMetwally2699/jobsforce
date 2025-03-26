@@ -61,7 +61,10 @@ function Login() {
           </button>
           <p className="mt-4 text-center text-gray-600">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-blue-500 hover:text-blue-700">
+            <Link
+              to={`/signup?role=${role}`}
+              className="text-blue-500 hover:text-blue-700"
+            >
               Sign up
             </Link>
           </p>

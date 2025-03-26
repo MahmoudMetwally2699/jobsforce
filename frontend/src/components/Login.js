@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -9,13 +9,19 @@ function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [searchParams] = useSearchParams();
+  const role = searchParams.get('role') || 'user';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/auth/login', { email, password });
-      login(response.data.token);
-      navigate('/');
+      const response = await api.post(`/auth/${role}/login`, {
+        email,
+        password
+      });
+
+      login(response.data.token, response.data.role);
+      navigate(response.data.role === 'recruiter' ? '/post-job' : '/recommendations');
     } catch (error) {
       setError(error.response?.data?.error || 'Invalid credentials');
     }
@@ -24,7 +30,9 @@ function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6">Login</h2>
+        <h2 className="text-2xl font-bold mb-6">
+          {role === 'recruiter' ? 'Recruiter Login' : 'Job Seeker Login'}
+        </h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

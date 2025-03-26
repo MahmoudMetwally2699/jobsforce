@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
@@ -7,45 +7,44 @@ function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [searchParams] = useSearchParams();
+  const role = searchParams.get('role') || 'user';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
     try {
-      const response = await api.post('/auth/signup', {
+      const data = {
         email,
-        password
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+        password,
+        ...(role === 'recruiter' && { companyName })
+      };
 
-      if (response.data && response.data.token) {
-        login(response.data.token);
-        navigate('/');
-      } else {
-        setError('Invalid server response');
+      const response = await api.post(`/auth/${role}/signup`, data);
+
+      if (response.data?.token) {
+        login(response.data.token, response.data.role);
+        navigate(role === 'recruiter' ? '/post-job' : '/recommendations');
       }
     } catch (error) {
-      console.error('Signup error:', error);
-      setError(error.message || 'Failed to create account. Please try again.');
+      setError(error.response?.data?.error || 'Failed to create account');
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6">Create Account</h2>
+        <h2 className="text-2xl font-bold mb-6">
+          {role === 'recruiter' ? 'Create Recruiter Account' : 'Create Job Seeker Account'}
+        </h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -78,6 +77,18 @@ function Signup() {
               required
             />
           </div>
+          {role === 'recruiter' && (
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Company Name"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+          )}
           <button
             type="submit"
             className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"

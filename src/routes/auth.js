@@ -4,35 +4,67 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const router = express.Router();
 
-router.post('/signup', async (req, res) => {
+// User signup
+router.post('/user/signup', async (req, res) => {
   try {
-    const { email, password, role, companyName } = req.body;
-
-    if (role === 'recruiter' && !companyName) {
-      return res.status(400).json({ error: 'Company name is required for recruiters' });
-    }
-
-    const user = new User({ email, password, role, companyName });
+    const { email, password } = req.body;
+    const user = new User({
+      email,
+      password,
+      role: 'user'
+    });
     await user.save();
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET);
-    res.status(201).json({ token, role: user.role });
+    const token = jwt.sign({ userId: user._id, role: 'user' }, process.env.JWT_SECRET);
+    res.status(201).json({ token, role: 'user' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-router.post('/login', async (req, res) => {
+// Recruiter signup
+router.post('/recruiter/signup', async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
+    const { email, password, companyName } = req.body;
+    if (!companyName) {
+      return res.status(400).json({ error: 'Company name is required' });
+    }
+    const user = new User({
+      email,
+      password,
+      role: 'recruiter',
+      companyName
+    });
+    await user.save();
+    const token = jwt.sign({ userId: user._id, role: 'recruiter' }, process.env.JWT_SECRET);
+    res.status(201).json({ token, role: 'recruiter' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// User login
+router.post('/user/login', async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email, role: 'user' });
+    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    const isMatch = await bcrypt.compare(req.body.password, user.password);
-    if (!isMatch) {
+    const token = jwt.sign({ userId: user._id, role: 'user' }, process.env.JWT_SECRET);
+    res.json({ token, role: 'user' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Recruiter login
+router.post('/recruiter/login', async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email, role: 'recruiter' });
+    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
-    res.json({ token });
+    const token = jwt.sign({ userId: user._id, role: 'recruiter' }, process.env.JWT_SECRET);
+    res.json({ token, role: 'recruiter' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

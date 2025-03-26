@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 function Dashboard() {
-  const { logout } = useAuth();
+  const { logout, role } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,21 +21,35 @@ function Dashboard() {
                 <span className="text-xl font-bold">JobsForce</span>
               </div>
               <div className="ml-6 flex space-x-8">
-                <Link
-                  to="/upload"
-                  className="inline-flex items-center px-1 pt-1 text-gray-900"
-                >
-                  Upload Resume
-                </Link>
-                <Link
-                  to="/recommendations"
-                  className="inline-flex items-center px-1 pt-1 text-gray-900"
-                >
-                  Job Recommendations
-                </Link>
+                {role === 'user' ? (
+                  <>
+                    <Link
+                      to="/upload"
+                      className="inline-flex items-center px-1 pt-1 text-gray-900"
+                    >
+                      Upload Resume
+                    </Link>
+                    <Link
+                      to="/recommendations"
+                      className="inline-flex items-center px-1 pt-1 text-gray-900"
+                    >
+                      Job Recommendations
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    to="/post-job"
+                    className="inline-flex items-center px-1 pt-1 text-gray-900"
+                  >
+                    Post Job
+                  </Link>
+                )}
               </div>
             </div>
             <div className="flex items-center">
+              <span className="mr-4 text-gray-600">
+                {role === 'recruiter' ? 'Recruiter' : 'Job Seeker'}
+              </span>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"

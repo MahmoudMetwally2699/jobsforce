@@ -1,4 +1,5 @@
 const axios = require('axios');
+const SkillExtractor = require('./skillExtractor');
 
 class LinkedinService {
   static async extractSkills(linkedinUrl) {
@@ -28,54 +29,59 @@ class LinkedinService {
 
       // Extract skills from all possible sources in the profile
       const profile = response.data;
-      const skills = new Set();
+      const allSkills = new Set();
 
-      // Add skills from the dedicated skills section
+      // Add skills directly from LinkedIn's skills section
       if (Array.isArray(profile.skills)) {
         profile.skills.forEach(skill => {
           if (typeof skill === 'string') {
-            skills.add(skill.trim());
+            allSkills.add(skill.trim());
           } else if (skill.name) {
-            skills.add(skill.name.trim());
+            allSkills.add(skill.name.trim());
           }
         });
       }
 
-      // Add skills from experiences
+      // Process experience descriptions with SkillExtractor
       if (Array.isArray(profile.experiences)) {
-        profile.experiences.forEach(exp => {
+        for (const exp of profile.experiences) {
           if (exp.description) {
-            const extractedSkills = SkillExtractor.extractSkills(exp.description);
-            extractedSkills.forEach(skill => skills.add(skill.trim()));
+            const extractedSkills = await SkillExtractor.extractSkills(exp.description);
+            extractedSkills.forEach(skill => allSkills.add(skill));
           }
-        });
+          if (exp.title) {
+            const titleSkills = await SkillExtractor.extractSkills(exp.title);
+            titleSkills.forEach(skill => allSkills.add(skill));
+          }
+        }
       }
 
-      // Add skills from certifications
+      // Add certifications as skills
       if (Array.isArray(profile.certifications)) {
-        profile.certifications.forEach(cert => {
+        for (const cert of profile.certifications) {
           if (cert.name) {
-            skills.add(cert.name.trim());
+            const certSkills = await SkillExtractor.extractSkills(cert.name);
+            certSkills.forEach(skill => allSkills.add(skill));
           }
-        });
+        }
       }
 
       // Add education fields as skills
       if (Array.isArray(profile.education)) {
         profile.education.forEach(edu => {
           if (edu.field_of_study) {
-            skills.add(edu.field_of_study.trim());
+            allSkills.add(edu.field_of_study.trim());
           }
           if (edu.degree_name) {
-            skills.add(edu.degree_name.trim());
+            allSkills.add(edu.degree_name.trim());
           }
         });
       }
 
-      const skillsArray = Array.from(skills).filter(Boolean);
+      const skillsArray = Array.from(allSkills).filter(Boolean);
 
       if (skillsArray.length === 0) {
-        console.log('Warning: No skills found in profile data');
+        console.log('No skills found in profile:', profile);
         throw new Error('No skills found in the LinkedIn profile');
       }
 
@@ -84,10 +90,10 @@ class LinkedinService {
 
     } catch (error) {
       console.error('LinkedIn API Error:', {
+        message: error.message,
+        response: error.response?.data,
         status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message
+        url: linkedinUrl
       });
 
       if (error.response?.status === 429) {

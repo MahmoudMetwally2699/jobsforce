@@ -63,7 +63,7 @@ router.post('/linkedin',
   auth,
   async (req, res, next) => {
     try {
-      const { url, saveToProfile } = req.body;
+      const { url } = req.body;
 
       if (!url) {
         return res.status(400).json({ error: 'LinkedIn URL is required' });
@@ -76,7 +76,15 @@ router.post('/linkedin',
         });
       }
 
+      console.log('Processing LinkedIn URL:', url);
       const skills = await LinkedinService.extractSkills(url);
+
+      // Log successful API call
+      console.log('LinkedIn API Success:', {
+        userId: req.user.userId,
+        skillsCount: skills.length,
+        timestamp: new Date().toISOString()
+      });
 
       if (skills.length === 0) {
         return res.status(404).json({
@@ -84,29 +92,36 @@ router.post('/linkedin',
         });
       }
 
-      if (saveToProfile) {
-        // Update user's skills in database
-        await User.findByIdAndUpdate(
-          req.user.userId,
-          {
-            $addToSet: { skills: { $each: skills } }
-          },
-          { new: true }
-        );
-      }
-
-      // Track API usage
-      console.log(`LinkedIn API called for user ${req.user.userId} at ${new Date().toISOString()}`);
+      // Update user's skills in database
+      const user = await User.findByIdAndUpdate(
+        req.user.userId,
+        {
+          $addToSet: { skills: { $each: skills } }
+        },
+        { new: true }
+      );
 
       res.json({
+        success: true,
         skills,
         message: 'Skills successfully extracted',
-        count: skills.length
+        count: skills.length,
+        updatedUserSkills: user.skills
       });
 
     } catch (error) {
-      console.error('LinkedIn API Error:', error);
-      next(error);
+      console.error('LinkedIn Extraction Error:', {
+        userId: req.user.userId,
+        url: req.body.url,
+        error: error.message,
+        stack: error.stack
+      });
+
+      // Send more specific error messages to client
+      res.status(error.response?.status || 500).json({
+        error: error.message || 'Failed to extract skills from LinkedIn profile',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   }
 );

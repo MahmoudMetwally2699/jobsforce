@@ -16,20 +16,45 @@ class LinkedinService {
         }
       });
 
+      if (!response.data) {
+        throw new Error('No data received from LinkedIn API');
+      }
+
+      // Extract all possible skill-related information
       const profile = response.data;
+      const skills = new Set([
+        ...(profile.skills?.map(s => s.name) || []),
+        ...(profile.experiences?.flatMap(e => e.skills || []) || []),
+        ...(profile.education?.flatMap(e => e.fields_of_study || []) || []),
+        ...(profile.certifications?.map(c => c.name) || []),
+        ...(profile.accomplishments?.courses || [])
+      ].filter(Boolean).map(skill => skill.trim()));
 
-      // Extract skills from the API response
-      const skills = [
-        ...(profile.skills || []),
-        ...(profile.accomplishments?.courses || []),
-        ...(profile.certifications?.map(cert => cert.name) || [])
-      ].filter(Boolean);
+      if (skills.size === 0) {
+        console.log('No skills found in profile:', profile);
+        throw new Error('No skills found in the LinkedIn profile');
+      }
 
-      return Array.from(new Set(skills)); // Remove duplicates
+      return Array.from(skills);
 
     } catch (error) {
-      console.error('LinkedIn API Error:', error.response?.data || error.message);
-      throw new Error('Failed to extract skills from LinkedIn profile');
+      // Detailed error logging
+      console.error('LinkedIn API Error Details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: linkedinUrl
+      });
+
+      if (error.response?.status === 429) {
+        throw new Error('LinkedIn API rate limit exceeded. Please try again later.');
+      }
+
+      if (error.response?.status === 401) {
+        throw new Error('LinkedIn API authentication failed. Please contact support.');
+      }
+
+      throw new Error(error.response?.data?.message || error.message || 'Failed to extract skills from LinkedIn profile');
     }
   }
 }

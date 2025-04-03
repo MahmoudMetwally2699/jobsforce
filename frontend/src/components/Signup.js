@@ -57,8 +57,7 @@ function Signup() {
           <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">
             <div className="flex items-center">
               <svg className="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-red-700">{error}</span>
             </div>
@@ -144,18 +143,16 @@ function Signup() {
               Already have an account?{' '}
               <Link
                 to={`/login?role=${role}`}
+                className="font-medium text-blue-600 hover:text-blue-500 transition duration-150"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-export default Signup;}  );    </div>      </div>        </form>          </div>            </p>              </Link>                Sign in              >                className="font-medium text-blue-600 hover:text-blue-500 transition duration-150"
+export default Signup;

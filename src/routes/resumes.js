@@ -4,6 +4,7 @@ const User = require('../models/User');
 const ResumeProcessor = require('../services/resumeProcessor');
 const CloudinaryService = require('../services/cloudinaryService');
 const SkillExtractor = require('../services/skillExtractor');
+const LinkedinService = require('../services/linkedinService');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -53,6 +54,58 @@ router.post('/upload',
       if (error.message.includes('File too large')) {
         return res.status(413).json({ error: 'File too large. Maximum size is 5MB.' });
       }
+      next(error);
+    }
+  }
+);
+
+router.post('/linkedin',
+  auth,
+  async (req, res, next) => {
+    try {
+      const { url, saveToProfile } = req.body;
+
+      if (!url) {
+        return res.status(400).json({ error: 'LinkedIn URL is required' });
+      }
+
+      // Validate URL format
+      if (!url.match(/^https?:\/\/(www\.)?linkedin\.com\/in\/[\w-]+\/?$/)) {
+        return res.status(400).json({
+          error: 'Invalid LinkedIn URL format. Please provide a valid profile URL.'
+        });
+      }
+
+      const skills = await LinkedinService.extractSkills(url);
+
+      if (skills.length === 0) {
+        return res.status(404).json({
+          error: 'No skills found in the LinkedIn profile'
+        });
+      }
+
+      if (saveToProfile) {
+        // Update user's skills in database
+        await User.findByIdAndUpdate(
+          req.user.userId,
+          {
+            $addToSet: { skills: { $each: skills } }
+          },
+          { new: true }
+        );
+      }
+
+      // Track API usage
+      console.log(`LinkedIn API called for user ${req.user.userId} at ${new Date().toISOString()}`);
+
+      res.json({
+        skills,
+        message: 'Skills successfully extracted',
+        count: skills.length
+      });
+
+    } catch (error) {
+      console.error('LinkedIn API Error:', error);
       next(error);
     }
   }

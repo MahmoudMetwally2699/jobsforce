@@ -16,7 +16,7 @@ class LinkedinService {
           skills: 'include'
         },
         headers: {
-          'Authorization': 'Bearer QtGZ2VY2DNStV207mPwb-g'
+          'Authorization': 'Bearer QMhxdsW3Eq7QTarYocEGfQ'
         }
       });
 

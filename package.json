@@ -14,7 +14,7 @@
     "vercel-install": "npm install --omit=dev"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^4.22.1",
     "mongoose": "^7.4.0",
     "jsonwebtoken": "^9.0.1",
     "cloudinary": "^1.40.0",
